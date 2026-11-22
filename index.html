@@ -55,6 +55,9 @@
         <div class="clientcard"><span>Numri i llogarisë</span><strong id="clientAccount">—</strong></div>
         <div class="clientcard"><span>Statusi i llogarisë</span><strong id="clientAccountStatus">—</strong></div>
       </div>
+      <div class="panelhead" style="margin-top:20px"><h3>POZITAT E HAPURA</h3><button class="adminrefresh" id="clientCloseAll" type="button" disabled>MBYLL TË GJITHA</button></div>
+      <div class="admintablewrap"><table class="admintable"><thead><tr><th>Instrumenti</th><th>Tipi</th><th>Vëllimi</th><th>Hyrja</th><th>SL</th><th>TP</th><th>Hapur</th></tr></thead><tbody id="clientPositionsBody"><tr><td colspan="7">Duke ngarkuar…</td></tr></tbody></table></div>
+      <div class="clientmessage" id="clientPositionMessage">Mbyllja demo përdor çmimin XAUUSD që e vendos ti manualisht.</div>
       <div class="panelhead"><h3>HISTORIKU FINANCIAR</h3><span class="tag">LLOGARIA IME</span></div>
       <div class="admintablewrap"><table class="admintable"><thead><tr><th>Data</th><th>Lloji</th><th>Shuma (USD)</th><th>Përshkrimi</th></tr></thead><tbody id="clientLedgerBody"><tr><td colspan="4">Duke ngarkuar…</td></tr></tbody></table></div>
       <div class="clientmessage" id="clientLoadMessage"></div>
@@ -220,6 +223,7 @@
     const adminLoadMessage = document.getElementById("adminLoadMessage");
     let adminClients = [];
     let adminAccounts = [];
+    let clientCurrentAccountId = null;
     const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, ch =>
       ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[ch])
     );
@@ -289,8 +293,18 @@
           return;
         }
         const account = accounts[0];
+        clientCurrentAccountId = account.id;
         document.getElementById("clientAccount").textContent = "#" + account.account_number;
         document.getElementById("clientAccountStatus").textContent = account.status === "active" ? "Aktive" : account.status === "pending" ? "Në pritje" : account.status;
+        const { data: positions, error: positionsError } = await sb.from("positions").select("id, symbol, side, volume, entry_price, stop_loss, take_profit, opened_at").eq("account_id", account.id).eq("status", "open").order("opened_at", { ascending: false });
+        if (positionsError) throw positionsError;
+        const openPositions = positions || [];
+        document.getElementById("clientPositionsBody").innerHTML = openPositions.length
+          ? openPositions.map(p => '<tr><td>' + escapeHtml(p.symbol) + '</td><td>' + escapeHtml(p.side.toUpperCase()) + '</td><td>' + escapeHtml(Number(p.volume).toFixed(2)) + '</td><td>' + escapeHtml(p.entry_price ?? "—") + '</td><td>' + escapeHtml(p.stop_loss ?? "—") + '</td><td>' + escapeHtml(p.take_profit ?? "—") + '</td><td>' + escapeHtml(new Date(p.opened_at).toLocaleString("sq-AL")) + '</td></tr>').join("")
+          : '<tr><td colspan="7">Nuk ka pozita të hapura.</td></tr>';
+        const closeAllButton = document.getElementById("clientCloseAll");
+        closeAllButton.disabled = openPositions.length === 0;
+        closeAllButton.textContent = openPositions.length ? "MBYLL TË GJITHA (" + openPositions.length + ")" : "NUK KA POZITA";
         const { data: entries, error: ledgerError } = await sb.from("ledger_entries").select("id, entry_type, amount, description, created_at").eq("account_id", account.id).order("created_at", { ascending: false });
         if (ledgerError) throw ledgerError;
         const rows = entries || [];
@@ -307,6 +321,32 @@
     document.getElementById("clientRefresh").addEventListener("click", async () => {
       const { data } = await sb.auth.getUser();
       if (data?.user) await loadClientDashboard(data.user.id);
+    });
+    document.getElementById("clientCloseAll").addEventListener("click", async () => {
+      if (!clientCurrentAccountId) return;
+      const priceText = window.prompt("Shkruaj çmimin aktual DEMO të XAUUSD për mbyllje:");
+      if (priceText === null) return;
+      const exitPrice = Number(priceText.trim());
+      if (!Number.isFinite(exitPrice) || exitPrice <= 0) {
+        document.getElementById("clientPositionMessage").textContent = "Shkruaj një çmim të vlefshëm, p.sh. 2650.50.";
+        return;
+      }
+      if (!window.confirm("A je i sigurt që dëshiron t’i mbyllësh të gjitha pozitat e hapura me çmimin demo " + exitPrice + "?")) return;
+      const button = document.getElementById("clientCloseAll");
+      const message = document.getElementById("clientPositionMessage");
+      button.disabled = true;
+      message.textContent = "Duke mbyllur pozitat demo…";
+      try {
+        const { data, error } = await sb.rpc("client_close_all_demo_positions", { p_account_id: clientCurrentAccountId, p_exit_price: exitPrice });
+        if (error) throw error;
+        const result = Array.isArray(data) ? data[0] : data;
+        message.textContent = "U mbyllën " + result.closed_count + " pozita demo. P/L i realizuar: $" + Number(result.total_realized_pnl).toFixed(2) + ".";
+        const { data: userData } = await sb.auth.getUser();
+        if (userData?.user) await loadClientDashboard(userData.user.id);
+      } catch (err) {
+        message.textContent = "Mbyllja dështoi: " + (err.message || "Gabim i panjohur");
+        button.disabled = false;
+      }
     });
     // Isolated auth client creates a new auth user without replacing the administrator session.
     const registrationClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
