@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lightweight-charts@4.2.2/dist/lightweight-charts.standalone.production.js"></script>
   <style>
     :root{--bg:#090b10;--panel:#11151d;--panel2:#151b25;--line:#252d3a;--gold:#d8ad55;--gold2:#f0d18a;--text:#f4f5f7;--muted:#8d98a9;--green:#43c98b;--red:#ef727b}
     *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 75% -10%,#252012 0,transparent 34%),var(--bg);color:var(--text);font-family:"DM Sans",sans-serif;min-height:100vh}
@@ -56,20 +57,16 @@
         <div class="clientcard"><span>Statusi i llogarisë</span><strong id="clientAccountStatus">—</strong></div>
       </div>
       <div class="panel" style="margin:16px 0;background:#0d121a">
-        <div class="panelhead"><h3>XAUUSD · GRAFIKU I TREGUT</h3><span class="tag">CANDLES · TRADINGVIEW</span></div>
-        <div id="kosTradingViewChart" style="height:430px;width:100%;border-radius:10px;overflow:hidden;background:#0b1018">
-          <div class="tradingview-widget-container" style="height:100%;width:100%">
-            <div class="tradingview-widget-container__widget" style="height:calc(100% - 24px);width:100%"></div>
-            <div class="tradingview-widget-copyright" style="font-size:10px;text-align:center;padding:3px"><a href="https://www.tradingview.com/symbols/XAUUSD/" target="_blank" rel="noopener">XAUUSD chart</a> · TradingView</div>
-          </div>
-        </div>
-        <div class="adminnotice" style="margin:10px 0 14px">Candles dhe kuotat shfaqen nga TradingView. Për hapjen/mbylljen automatike demo me çmimin aktual duhet të lidhet edhe API i çmimeve.</div>
-        <div class="panelhead"><h3>HAP POZITË DEMO · XAUUSD</h3><span class="tag">DERI NË LIDHJEN E API</span></div>
+        <div class="panelhead"><h3>XAUUSD · SIMULATED MARKET</h3><span class="tag">INTERNAL ENGINE · DEMO</span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 10px;flex-wrap:wrap"><div><div style="font-size:11px;color:var(--muted)">ÇMIMI SIMULUES</div><strong id="demoMarketPrice" style="font:800 27px Manrope;color:var(--gold2)">—</strong></div><div style="font-size:11px;color:var(--muted);text-align:right">XAU / USD<br><span id="demoMarketStatus">Duke lidhur motorin…</span></div></div>
+        <div id="kosTradingViewChart" style="height:340px;width:100%;border-radius:10px;overflow:hidden;background:#0b1018"></div>
+        <div class="adminnotice" style="margin:10px 0 14px">Candles dhe çmimi gjenerohen nga motori simulues i KOS TRADE. Nuk janë kuota të tregut real.</div>
+        <div class="panelhead"><h3>HAP POZITË · XAUUSD</h3><span class="tag">MARKET ORDER</span></div>
         <div class="adminforms" style="margin:0">
           <form class="adminform" id="demoTradeForm">
             <label for="demoSide">Drejtimi</label><select id="demoSide"><option value="buy">BUY</option><option value="sell">SELL</option></select>
             <label for="demoVolume">Vëllimi (0.01–10.00 lot)</label><input id="demoVolume" type="number" min="0.01" max="10" step="0.01" value="0.01" required>
-            <label for="demoEntryPrice">Çmimi hyrës XAUUSD</label><input id="demoEntryPrice" type="number" min="0.01" step="0.01" placeholder="p.sh. 2650.50" required>
+            <div style="padding:10px;background:#151b25;border-radius:8px;color:var(--muted);font-size:12px">Hyrja automatike me çmimin: <b id="demoOrderPrice" style="color:var(--gold2)">—</b></div>
             <label for="demoStopLoss">Stop Loss (opsional)</label><input id="demoStopLoss" type="number" min="0.01" step="0.01" placeholder="Lëre bosh nëse s'do">
             <label for="demoTakeProfit">Take Profit (opsional)</label><input id="demoTakeProfit" type="number" min="0.01" step="0.01" placeholder="Lëre bosh nëse s'do">
             <button type="submit" id="demoOpenButton">HAP BUY / SELL DEMO</button>
@@ -77,14 +74,14 @@
           </form>
           <div class="adminform">
             <h4>SI FUNKSIONON DEMO</h4>
-            <div class="adminnotice">Vendos vetë çmimin hyrës. Pozita ruhet në llogari dhe shfaqet te lista më poshtë. Nuk ka çmime live, ekzekutim brokeri apo para reale.</div>
-            <div class="adminnotice">Llogaritja demo e P/L supozon kontratë 100 oz për 1.00 lot. Mbyllja bëhet me çmim manual.</div>
+            <div class="adminnotice">BUY/SELL hapet automatikisht me çmimin e motorit simulues. Nuk ka nevojë të shkruash çmimin.</div>
+            <div class="adminnotice">P/L llogaritet sipas lëvizjes së çmimit simulues. SL/TP kontrollohen nga serveri gjatë rifreskimit të terminalit.</div>
           </div>
         </div>
       </div>
       <div class="panelhead" style="margin-top:20px"><h3>POZITAT E HAPURA</h3><button class="adminrefresh" id="clientCloseAll" type="button" disabled>MBYLL TË GJITHA</button></div>
-      <div class="admintablewrap"><table class="admintable"><thead><tr><th>Instrumenti</th><th>Tipi</th><th>Vëllimi</th><th>Hyrja</th><th>SL</th><th>TP</th><th>Hapur</th></tr></thead><tbody id="clientPositionsBody"><tr><td colspan="7">Duke ngarkuar…</td></tr></tbody></table></div>
-      <div class="clientmessage" id="clientPositionMessage">Mbyllja demo përdor çmimin XAUUSD që e vendos ti manualisht.</div>
+      <div class="admintablewrap"><table class="admintable"><thead><tr><th>Instrumenti</th><th>Tipi</th><th>Lot</th><th>Hyrja</th><th>Çmimi</th><th>P/L</th><th>SL</th><th>TP</th><th></th></tr></thead><tbody id="clientPositionsBody"><tr><td colspan="7">Duke ngarkuar…</td></tr></tbody></table></div>
+      <div class="clientmessage" id="clientPositionMessage">Çmimi i mbylljes merret automatikisht nga motori simulues.</div>
       <div class="panelhead"><h3>HISTORIKU FINANCIAR</h3><span class="tag">LLOGARIA IME</span></div>
       <div class="admintablewrap"><table class="admintable"><thead><tr><th>Data</th><th>Lloji</th><th>Shuma (USD)</th><th>Përshkrimi</th></tr></thead><tbody id="clientLedgerBody"><tr><td colspan="4">Duke ngarkuar…</td></tr></tbody></table></div>
       <div class="clientmessage" id="clientLoadMessage"></div>
@@ -325,10 +322,14 @@
         document.getElementById("clientAccountStatus").textContent = account.status === "active" ? "Aktive" : account.status === "pending" ? "Në pritje" : account.status;
         const { data: positions, error: positionsError } = await sb.from("positions").select("id, symbol, side, volume, entry_price, stop_loss, take_profit, opened_at").eq("account_id", account.id).eq("status", "open").order("opened_at", { ascending: false });
         if (positionsError) throw positionsError;
+        await refreshDemoMarket();
         const openPositions = positions || [];
         document.getElementById("clientPositionsBody").innerHTML = openPositions.length
-          ? openPositions.map(p => '<tr><td>' + escapeHtml(p.symbol) + '</td><td>' + escapeHtml(p.side.toUpperCase()) + '</td><td>' + escapeHtml(Number(p.volume).toFixed(2)) + '</td><td>' + escapeHtml(p.entry_price ?? "—") + '</td><td>' + escapeHtml(p.stop_loss ?? "—") + '</td><td>' + escapeHtml(p.take_profit ?? "—") + '</td><td>' + escapeHtml(new Date(p.opened_at).toLocaleString("sq-AL")) + '</td></tr>').join("")
-          : '<tr><td colspan="7">Nuk ka pozita të hapura.</td></tr>';
+          ? openPositions.map(p => {
+              const floating = (p.side === "buy" ? demoCurrentPrice - Number(p.entry_price) : Number(p.entry_price) - demoCurrentPrice) * Number(p.volume) * 100;
+              return '<tr><td>' + escapeHtml(p.symbol) + '</td><td>' + escapeHtml(p.side.toUpperCase()) + '</td><td>' + escapeHtml(Number(p.volume).toFixed(2)) + '</td><td>' + escapeHtml(Number(p.entry_price).toFixed(2)) + '</td><td>' + escapeHtml(Number(demoCurrentPrice).toFixed(2)) + '</td><td style="color:' + (floating >= 0 ? 'var(--green)' : 'var(--red)') + '">' + (floating >= 0 ? '+' : '') + floating.toFixed(2) + '</td><td>' + escapeHtml(p.stop_loss ?? "—") + '</td><td>' + escapeHtml(p.take_profit ?? "—") + '</td><td><button type="button" class="adminrefresh close-one-position" data-id="' + escapeHtml(p.id) + '" style="margin:0;padding:7px 9px">MBYLL</button></td></tr>';
+            }).join("")
+          : '<tr><td colspan="9">Nuk ka pozita të hapura.</td></tr>';
         const closeAllButton = document.getElementById("clientCloseAll");
         closeAllButton.disabled = openPositions.length === 0;
         closeAllButton.textContent = openPositions.length ? "MBYLL TË GJITHA (" + openPositions.length + ")" : "NUK KA POZITA";
@@ -349,20 +350,64 @@
       const { data } = await sb.auth.getUser();
       if (data?.user) await loadClientDashboard(data.user.id);
     });
-    // TradingView market chart: real market candles are embedded independently from demo execution.
-    const tvScript = document.createElement("script");
-    tvScript.type = "text/javascript";
-    tvScript.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
-    tvScript.async = true;
-    tvScript.innerHTML = JSON.stringify({
-      autosize: true, symbol: "OANDA:XAUUSD", interval: "1", timezone: "Europe/Belgrade",
-      theme: "dark", style: "1", locale: "en", backgroundColor: "#0b1018",
-      gridColor: "rgba(255,255,255,0.06)", hide_top_toolbar: false,
-      hide_legend: false, allow_symbol_change: false, save_image: false,
-      calendar: false, details: false, hotlist: false, withdateranges: true,
-      hide_side_toolbar: true, support_host: "https://www.tradingview.com"
+    // KOS TRADE internal simulated market chart (not a live-market feed).
+    let demoChart = null;
+    let demoCandleSeries = null;
+    let demoCurrentPrice = null;
+    let demoRefreshTimer = null;
+    function initDemoChart() {
+      const el = document.getElementById("kosTradingViewChart");
+      if (!el || demoChart || !window.LightweightCharts) return;
+      demoChart = LightweightCharts.createChart(el, {
+        width: el.clientWidth, height: el.clientHeight,
+        layout: { background: { color: "#0b1018" }, textColor: "#aeb7c5" },
+        grid: { vertLines: { color: "#ffffff0b" }, horzLines: { color: "#ffffff0b" } },
+        rightPriceScale: { borderColor: "#303947" },
+        timeScale: { borderColor: "#303947", timeVisible: true, secondsVisible: false },
+        crosshair: { mode: LightweightCharts.CrosshairMode.Normal }
+      });
+      demoCandleSeries = demoChart.addCandlestickSeries({
+        upColor: "#43c98b", downColor: "#ef727b",
+        borderUpColor: "#43c98b", borderDownColor: "#ef727b",
+        wickUpColor: "#43c98b", wickDownColor: "#ef727b"
+      });
+      new ResizeObserver(() => {
+        if (demoChart) demoChart.applyOptions({ width: el.clientWidth, height: el.clientHeight });
+      }).observe(el);
+    }
+
+    async function refreshDemoMarket() {
+      if (!clientCurrentAccountId) return;
+      const { data, error } = await sb.rpc("client_demo_market_snapshot", { p_account_id: clientCurrentAccountId });
+      if (error) {
+        document.getElementById("demoMarketStatus").textContent = "Engine error";
+        console.error("Demo market:", error);
+        return;
+      }
+      demoCurrentPrice = Number(data.price);
+      document.getElementById("demoMarketPrice").textContent = "$" + demoCurrentPrice.toFixed(2);
+      document.getElementById("demoOrderPrice").textContent = "$" + demoCurrentPrice.toFixed(2);
+      document.getElementById("demoMarketStatus").textContent = "SIMULATED · ACTIVE";
+      initDemoChart();
+      if (demoCandleSeries && Array.isArray(data.candles)) {
+        const candles = data.candles.map(c => ({
+          time: Number(c.time), open: Number(c.open), high: Number(c.high),
+          low: Number(c.low), close: Number(c.close)
+        }));
+        const nowMinute = Math.floor(Number(data.server_time) / 60) * 60;
+        const current = candles.find(c => c.time === nowMinute);
+        if (current) {
+          current.high = Math.max(current.high, demoCurrentPrice);
+          current.low = Math.min(current.low, demoCurrentPrice);
+          current.close = demoCurrentPrice;
+        }
+        demoCandleSeries.setData(candles);
+        demoChart.timeScale().scrollToRealTime();
+      }
+    }
+    window.addEventListener("resize", () => {
+      if (demoChart) demoChart.applyOptions({ width: document.getElementById("kosTradingViewChart").clientWidth });
     });
-    document.querySelector("#kosTradingViewChart .tradingview-widget-container").appendChild(tvScript);
 
     document.getElementById("demoTradeForm").addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -372,14 +417,13 @@
       }
       const side = document.getElementById("demoSide").value;
       const volume = Number(document.getElementById("demoVolume").value);
-      const entryPrice = Number(document.getElementById("demoEntryPrice").value);
       const slText = document.getElementById("demoStopLoss").value.trim();
       const tpText = document.getElementById("demoTakeProfit").value.trim();
       const stopLoss = slText ? Number(slText) : null;
       const takeProfit = tpText ? Number(tpText) : null;
       const button = document.getElementById("demoOpenButton");
       const message = document.getElementById("demoTradeMessage");
-      if (!Number.isFinite(volume) || !Number.isFinite(entryPrice) ||
+      if (!Number.isFinite(volume) ||
           (stopLoss !== null && !Number.isFinite(stopLoss)) ||
           (takeProfit !== null && !Number.isFinite(takeProfit))) {
         message.textContent = "Kontrollo çmimin, vëllimin, SL dhe TP.";
@@ -389,17 +433,15 @@
       button.textContent = "DUKE HAPUR…";
       message.textContent = "Duke krijuar pozitën demo…";
       try {
-        const { data, error } = await sb.rpc("client_open_demo_position", {
+        const { data, error } = await sb.rpc("client_open_demo_market_position", {
           p_account_id: clientCurrentAccountId,
           p_side: side,
           p_volume: volume,
-          p_entry_price: entryPrice,
           p_stop_loss: stopLoss,
           p_take_profit: takeProfit
         });
         if (error) throw error;
         message.textContent = "Pozita " + side.toUpperCase() + " demo u hap me sukses.";
-        document.getElementById("demoEntryPrice").value = "";
         document.getElementById("demoStopLoss").value = "";
         document.getElementById("demoTakeProfit").value = "";
         const { data: userData } = await sb.auth.getUser();
@@ -413,20 +455,13 @@
     });
     document.getElementById("clientCloseAll").addEventListener("click", async () => {
       if (!clientCurrentAccountId) return;
-      const priceText = window.prompt("Shkruaj çmimin aktual DEMO të XAUUSD për mbyllje:");
-      if (priceText === null) return;
-      const exitPrice = Number(priceText.trim());
-      if (!Number.isFinite(exitPrice) || exitPrice <= 0) {
-        document.getElementById("clientPositionMessage").textContent = "Shkruaj një çmim të vlefshëm, p.sh. 2650.50.";
-        return;
-      }
-      if (!window.confirm("A je i sigurt që dëshiron t’i mbyllësh të gjitha pozitat e hapura me çmimin demo " + exitPrice + "?")) return;
+      if (!window.confirm("A je i sigurt që dëshiron t’i mbyllësh të gjitha pozitat me çmimin aktual simulues?")) return;
       const button = document.getElementById("clientCloseAll");
       const message = document.getElementById("clientPositionMessage");
       button.disabled = true;
       message.textContent = "Duke mbyllur pozitat demo…";
       try {
-        const { data, error } = await sb.rpc("client_close_all_demo_positions", { p_account_id: clientCurrentAccountId, p_exit_price: exitPrice });
+        const { data, error } = await sb.rpc("client_close_all_demo_positions", { p_account_id: clientCurrentAccountId });
         if (error) throw error;
         const result = Array.isArray(data) ? data[0] : data;
         message.textContent = "U mbyllën " + result.closed_count + " pozita demo. P/L i realizuar: $" + Number(result.total_realized_pnl).toFixed(2) + ".";
@@ -437,6 +472,32 @@
         button.disabled = false;
       }
     });
+    document.getElementById("clientPositionsBody").addEventListener("click", async (event) => {
+      const button = event.target.closest(".close-one-position");
+      if (!button) return;
+      button.disabled = true;
+      const { data, error } = await sb.rpc("client_close_demo_position", { p_position_id: button.dataset.id });
+      if (error) {
+        document.getElementById("clientPositionMessage").textContent = "Mbyllja dështoi: " + error.message;
+        button.disabled = false;
+        return;
+      }
+      const result = Array.isArray(data) ? data[0] : data;
+      document.getElementById("clientPositionMessage").textContent =
+        "Pozita u mbyll në $" + Number(result.exit_price).toFixed(2) + " · P/L: $" + Number(result.realized_pnl).toFixed(2);
+      const { data: userData } = await sb.auth.getUser();
+      if (userData?.user) await loadClientDashboard(userData.user.id);
+    });
+
+    // Refresh quote, candles, floating P/L and server-side SL/TP checks.
+    if (demoRefreshTimer) clearInterval(demoRefreshTimer);
+    demoRefreshTimer = setInterval(async () => {
+      if (!document.getElementById("clientPanel").hidden && clientCurrentAccountId) {
+        const { data: userData } = await sb.auth.getUser();
+        if (userData?.user) await loadClientDashboard(userData.user.id);
+      }
+    }, 5000);
+
     // Isolated auth client creates a new auth user without replacing the administrator session.
     const registrationClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       auth: { storageKey: "kos-trade-client-registration", persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
