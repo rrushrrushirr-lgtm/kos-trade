@@ -44,10 +44,10 @@
     <section class="welcome">
       <div class="eyebrow">Trading workspace</div>
       <h2>Mirë se erdhe në KOS TRADE</h2>
-      <p>Ndërfaqja fillestare e platformës. Lidhja me llogaritë dhe tregun konfigurohet në fazat pasuese.</p>
+      <p>Terminali XAUUSD · Çmim spot live · Llogari dhe pozita të menaxhuara në KOS TRADE.</p>
     </section>
 
-    <div class="notice"><span>◆</span><div><b>Version zhvillimi — pa tregtim aktiv.</b> Kjo faqe është vetëm skeleti vizual. Nuk ka çmime live, bilance klientësh, depozita apo ekzekutim urdhrash të lidhur. Mos e përdor për të pranuar para ose për të premtuar tregtim real.</div></div>
+    <div class="notice"><span>◆</span><div><b>XAUUSD · LIVE SPOT</b> Çmimi merret nga burim i jashtëm i tregut dhe përditësohet periodikisht. Pozitat dhe P/L regjistrohen nga engine-i i brendshëm i KOS TRADE; urdhrat nuk dërgohen te broker ose bursë.</div></div>
 
     <section class="panel clientpanel" id="clientPanel" hidden>
       <div class="panelhead"><div><div class="eyebrow">CLIENT AREA</div><h3 style="margin-top:5px">DASHBOARDI IM</h3></div><button class="adminrefresh" id="clientRefresh" type="button">RIFRESKO</button></div>
@@ -57,10 +57,10 @@
         <div class="clientcard"><span>Statusi i llogarisë</span><strong id="clientAccountStatus">—</strong></div>
       </div>
       <div class="panel" style="margin:16px 0;background:#0d121a">
-        <div class="panelhead"><h3>XAUUSD · SIMULATED MARKET</h3><span class="tag">INTERNAL ENGINE · DEMO</span></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 10px;flex-wrap:wrap"><div><div style="font-size:11px;color:var(--muted)">ÇMIMI SIMULUES</div><strong id="demoMarketPrice" style="font:800 27px Manrope;color:var(--gold2)">—</strong></div><div style="font-size:11px;color:var(--muted);text-align:right">XAU / USD<br><span id="demoMarketStatus">Duke lidhur motorin…</span></div></div>
+        <div class="panelhead"><h3>XAUUSD · LIVE SPOT</h3><span class="tag">LIVE PRICE FEED</span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 10px;flex-wrap:wrap"><div><div style="font-size:11px;color:var(--muted)">ÇMIMI LIVE</div><strong id="demoMarketPrice" style="font:800 27px Manrope;color:var(--gold2)">—</strong></div><div style="font-size:11px;color:var(--muted);text-align:right">XAU / USD<br><span id="demoMarketStatus">Duke marrë kuotën live…</span></div></div>
         <div id="kosTradingViewChart" style="height:340px;width:100%;border-radius:10px;overflow:hidden;background:#0b1018"></div>
-        <div class="adminnotice" style="margin:10px 0 14px">Candles dhe çmimi gjenerohen nga motori simulues i KOS TRADE. Nuk janë kuota të tregut real.</div>
+        <div class="adminnotice" style="margin:10px 0 14px">Çmimi spot XAU/USD merret nga Gold API. Kuota përditësohet rreth çdo 30 sekondash; candles ndërtohen nga kuotat e pranuara.</div>
         <div class="panelhead"><h3>HAP POZITË · XAUUSD</h3><span class="tag">MARKET ORDER</span></div>
         <div class="adminforms" style="margin:0">
           <form class="adminform" id="demoTradeForm">
@@ -69,13 +69,13 @@
             <div style="padding:10px;background:#151b25;border-radius:8px;color:var(--muted);font-size:12px">Hyrja automatike me çmimin: <b id="demoOrderPrice" style="color:var(--gold2)">—</b></div>
             <label for="demoStopLoss">Stop Loss (opsional)</label><input id="demoStopLoss" type="number" min="0.01" step="0.01" placeholder="Lëre bosh nëse s'do">
             <label for="demoTakeProfit">Take Profit (opsional)</label><input id="demoTakeProfit" type="number" min="0.01" step="0.01" placeholder="Lëre bosh nëse s'do">
-            <button type="submit" id="demoOpenButton">HAP BUY / SELL DEMO</button>
+            <button type="submit" id="demoOpenButton">HAP BUY / SELL</button>
             <div class="adminmessage" id="demoTradeMessage"></div>
           </form>
           <div class="adminform">
-            <h4>SI FUNKSIONON DEMO</h4>
-            <div class="adminnotice">BUY/SELL hapet automatikisht me çmimin e motorit simulues. Nuk ka nevojë të shkruash çmimin.</div>
-            <div class="adminnotice">P/L llogaritet sipas lëvizjes së çmimit simulues. SL/TP kontrollohen nga serveri gjatë rifreskimit të terminalit.</div>
+            <h4>EKZEKUTIMI I POZITAVE</h4>
+            <div class="adminnotice">BUY/SELL hapet automatikisht me kuotën e fundit live të XAU/USD.</div>
+            <div class="adminnotice">P/L llogaritet sipas ndryshimit të kuotës live. SL/TP kontrollohen nga serveri kur merret kuotë e re.</div>
           </div>
         </div>
       </div>
@@ -85,31 +85,8 @@
       <div class="panelhead"><h3>HISTORIKU FINANCIAR</h3><span class="tag">LLOGARIA IME</span></div>
       <div class="admintablewrap"><table class="admintable"><thead><tr><th>Data</th><th>Lloji</th><th>Shuma (USD)</th><th>Përshkrimi</th></tr></thead><tbody id="clientLedgerBody"><tr><td colspan="4">Duke ngarkuar…</td></tr></tbody></table></div>
       <div class="clientmessage" id="clientLoadMessage"></div>
-      <div class="clienttradeinfo"><b style="color:var(--gold2)">KOS TRADE · SIMULATED ENGINE</b><br>Ky terminal përdor çmime dhe candles të gjeneruara nga motori simulues i KOS TRADE. BUY/SELL, SL/TP, P/L dhe mbyllja e pozicioneve punojnë në modalitet testues. Nuk është treg real dhe nuk kryen ekzekutim në bursë.</div>
+      <div class="clienttradeinfo"><b style="color:var(--gold2)">KOS TRADE · LIVE XAUUSD</b><br>Çmimi i shfaqur është kuotë spot XAU/USD nga burim i jashtëm. Pozitat, SL/TP dhe P/L përpunohen nga engine-i i brendshëm i KOS TRADE; platforma nuk dërgon urdhra te broker ose bursë.</div>
     </section>
-    <section class="grid">
-      <div class="card"><div class="label">Instrument <span>01</span></div><div class="value">XAUUSD</div></div>
-      <div class="card"><div class="label">Platform status <span>02</span></div><div class="value small">In development</div></div>
-      <div class="card"><div class="label">Market feed <span>03</span></div><div class="value small muted">Not connected</div></div>
-      <div class="card"><div class="label">Trading engine <span>04</span></div><div class="value small muted">Not enabled</div></div>
-    </section>
-
-    <section class="main">
-      <div class="panel">
-        <div class="panelhead"><h3>XAUUSD MARKET</h3><span class="tag">PRICE FEED PENDING</span></div>
-        <div class="chartplaceholder"><div class="symbol">XAU / USD</div><p>Grafiku do të shfaqet pasi të integrohet një burim i licencuar dhe i verifikueshëm i të dhënave të tregut.</p></div>
-        <div class="actions"><div class="action">BUY<small>Disabled until execution is connected</small></div><div class="action">SELL<small>Disabled until execution is connected</small></div></div>
-      </div>
-      <aside class="panel">
-        <div class="panelhead"><h3>PROJECT MODULES</h3><span class="tag">PHASE 01</span></div>
-        <div class="sideitem"><strong>01 · Authentication</strong><span>Login dhe role për administratorë e klientë.</span></div>
-        <div class="sideitem"><strong>02 · Client accounts</strong><span>Llogari individuale dhe status i kontrolluar.</span></div>
-        <div class="sideitem"><strong>03 · Ledger</strong><span>Regjistër financiar me gjurmë auditimi.</span></div>
-        <div class="sideitem"><strong>04 · Trading engine</strong><span>Pozita, margin dhe P/L të llogaritura në server.</span></div>
-        <div class="sideitem"><strong>05 · Market integration</strong><span>Burim çmimesh dhe ekzekutim i autorizuar.</span></div>
-      </aside>
-    </section>
-
     <section class="panel adminpanel" id="adminPanel" hidden>
       <div class="adminhead"><div><div class="eyebrow">ADMINISTRATION</div><h3 style="margin-top:5px">ADMIN CONTROL CENTER</h3></div><button class="adminrefresh" id="adminRefresh" type="button">RIFRESKO TË DHËNAT</button></div>
       <div class="adminstats">
@@ -148,7 +125,7 @@
       <div class="admintablewrap"><table class="admintable"><thead><tr><th>Data</th><th>Llogaria</th><th>Lloji</th><th>Shuma (USD)</th><th>Përshkrimi</th></tr></thead><tbody id="adminLedgerBody"><tr><td colspan="5">Duke ngarkuar…</td></tr></tbody></table></div>
       <div class="adminmessage" id="adminLoadMessage"></div>
     </section>
-    <footer class="footer"><span>© KOS TRADE · DEVELOPMENT BUILD</span><span>Do not use for live financial activity</span></footer>
+    <footer class="footer"><span>© KOS TRADE</span><span>XAUUSD spot feed · Internal execution engine</span></footer>
   </div>
 
   <div class="loginback" id="loginGate">
@@ -380,16 +357,22 @@
 
     async function refreshDemoMarket() {
       if (!clientCurrentAccountId) return;
+      const { error: syncError } = await sb.functions.invoke("sync-xauusd", { body: {} });
+      if (syncError) {
+        document.getElementById("demoMarketStatus").textContent = "Feed unavailable";
+        console.error("XAUUSD feed:", syncError);
+        throw syncError;
+      }
       const { data, error } = await sb.rpc("client_demo_market_snapshot", { p_account_id: clientCurrentAccountId });
       if (error) {
-        document.getElementById("demoMarketStatus").textContent = "Engine error";
-        console.error("Demo market:", error);
-        return;
+        document.getElementById("demoMarketStatus").textContent = "Price unavailable";
+        console.error("XAUUSD market:", error);
+        throw error;
       }
       demoCurrentPrice = Number(data.price);
       document.getElementById("demoMarketPrice").textContent = "$" + demoCurrentPrice.toFixed(2);
       document.getElementById("demoOrderPrice").textContent = "$" + demoCurrentPrice.toFixed(2);
-      document.getElementById("demoMarketStatus").textContent = "SIMULATED · ACTIVE";
+      document.getElementById("demoMarketStatus").textContent = "LIVE · " + new Date(data.provider_updated_at).toLocaleTimeString("sq-XK", {hour:"2-digit", minute:"2-digit", second:"2-digit"});
       initDemoChart();
       if (demoCandleSeries && Array.isArray(data.candles)) {
         const candles = data.candles.map(c => ({
@@ -433,7 +416,7 @@
       }
       button.disabled = true;
       button.textContent = "DUKE HAPUR…";
-      message.textContent = "Duke krijuar pozitën demo…";
+      message.textContent = "Duke hapur pozitën…";
       try {
         const { data, error } = await sb.rpc("client_open_demo_market_position", {
           p_account_id: clientCurrentAccountId,
@@ -443,7 +426,7 @@
           p_take_profit: takeProfit
         });
         if (error) throw error;
-        message.textContent = "Pozita " + side.toUpperCase() + " demo u hap me sukses.";
+        message.textContent = "Pozita " + side.toUpperCase() + " u hap me sukses.";
         document.getElementById("demoStopLoss").value = "";
         document.getElementById("demoTakeProfit").value = "";
         const { data: userData } = await sb.auth.getUser();
@@ -452,21 +435,22 @@
         message.textContent = "Hapja dështoi: " + (err.message || "Gabim i panjohur");
       } finally {
         button.disabled = false;
-        button.textContent = "HAP BUY / SELL DEMO";
+        button.textContent = "HAP BUY / SELL";
       }
     });
     document.getElementById("clientCloseAll").addEventListener("click", async () => {
       if (!clientCurrentAccountId) return;
-      if (!window.confirm("A je i sigurt që dëshiron t’i mbyllësh të gjitha pozitat me çmimin aktual simulues?")) return;
+      if (!window.confirm("A je i sigurt që dëshiron t’i mbyllësh të gjitha pozitat me kuotën aktuale XAUUSD?")) return;
       const button = document.getElementById("clientCloseAll");
       const message = document.getElementById("clientPositionMessage");
       button.disabled = true;
-      message.textContent = "Duke mbyllur pozitat demo…";
+      message.textContent = "Duke mbyllur pozitat…";
       try {
+        await refreshDemoMarket();
         const { data, error } = await sb.rpc("client_close_all_demo_positions", { p_account_id: clientCurrentAccountId });
         if (error) throw error;
         const result = Array.isArray(data) ? data[0] : data;
-        message.textContent = "U mbyllën " + result.closed_count + " pozita demo. P/L i realizuar: $" + Number(result.total_realized_pnl).toFixed(2) + ".";
+        message.textContent = "U mbyllën " + result.closed_count + " pozita. P/L i realizuar: $" + Number(result.total_realized_pnl).toFixed(2) + ".";
         const { data: userData } = await sb.auth.getUser();
         if (userData?.user) await loadClientDashboard(userData.user.id);
       } catch (err) {
@@ -478,6 +462,7 @@
       const button = event.target.closest(".close-one-position");
       if (!button) return;
       button.disabled = true;
+      try { await refreshDemoMarket(); } catch (feedErr) { document.getElementById("clientPositionMessage").textContent = "Kuota live nuk është në dispozicion."; button.disabled = false; return; }
       const { data, error } = await sb.rpc("client_close_demo_position", { p_position_id: button.dataset.id });
       if (error) {
         document.getElementById("clientPositionMessage").textContent = "Mbyllja dështoi: " + error.message;
@@ -498,7 +483,7 @@
         const { data: userData } = await sb.auth.getUser();
         if (userData?.user) await loadClientDashboard(userData.user.id);
       }
-    }, 5000);
+    }, 30000);
 
     // Isolated auth client creates a new auth user without replacing the administrator session.
     const registrationClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
