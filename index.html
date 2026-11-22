@@ -30,7 +30,7 @@
     .adminpanel{margin-top:16px}.adminhead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.adminstats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:15px 0}.adminstat{background:#0d121a;border:1px solid var(--line);border-radius:10px;padding:13px}.adminstat span{display:block;color:var(--muted);font-size:11px}.adminstat strong{display:block;font:700 22px Manrope;margin-top:5px;color:var(--gold2)}.adminforms{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}.adminform{background:#0d121a;border:1px solid var(--line);border-radius:11px;padding:14px}.adminform h4{margin:0 0 10px;font:700 13px Manrope}.adminform label{display:block;color:var(--muted);font-size:11px;margin:9px 0 5px}.adminform input,.adminform select{width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:#090d14;color:var(--text)}.adminform button,.adminrefresh{margin-top:10px;padding:10px 13px;border:1px solid #8f713a;border-radius:8px;background:#211b10;color:var(--gold2);font-weight:700;cursor:pointer}.adminnotice{font-size:11px;color:var(--muted);margin:9px 0}.admintablewrap{overflow:auto;margin-top:14px}.admintable{width:100%;border-collapse:collapse;font-size:12px;min-width:560px}.admintable th,.admintable td{text-align:left;padding:11px;border-bottom:1px solid var(--line)}.admintable th{color:var(--muted);font-weight:500}.adminmessage{min-height:18px;color:var(--gold2);font-size:12px;margin-top:8px}@media(max-width:650px){.adminforms{grid-template-columns:1fr}.adminstats{grid-template-columns:1fr 1fr}}
     @media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.main{grid-template-columns:1fr}}@media(max-width:520px){.shell{padding:18px 14px 35px}.status{display:none}.grid{gap:9px}.card{padding:14px;min-height:100px}.value{font-size:20px}.chartplaceholder{height:210px}.welcome{margin-top:25px}}
 
-    .clientpanel{margin-top:16px}.clientcards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}.clientcard{background:#0d121a;border:1px solid var(--line);border-radius:11px;padding:16px}.clientcard span{display:block;color:var(--muted);font-size:11px}.clientcard strong{display:block;font:700 23px Manrope;color:var(--gold2);margin-top:7px}.clientmessage{font-size:12px;color:var(--gold2);margin-top:10px;min-height:18px}.clienttradeinfo{padding:14px;border:1px dashed #5c4828;border-radius:10px;color:var(--muted);font-size:12px;line-height:1.6;margin-top:14px}@media(max-width:650px){.clientcards{grid-template-columns:1fr 1fr}}
+    .clientpanel{margin-top:16px}.clientcards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}.clientcard{background:#0d121a;border:1px solid var(--line);border-radius:11px;padding:16px}.clientcard span{display:block;color:var(--muted);font-size:11px}.clientcard strong{display:block;font:700 23px Manrope;color:var(--gold2);margin-top:7px}.clientmessage{font-size:12px;color:var(--gold2);margin-top:10px;min-height:18px}.clienttradeinfo{padding:14px;border:1px dashed #5c4828;border-radius:10px;color:var(--muted);font-size:12px;line-height:1.6;margin-top:14px}@media(max-width:650px){.clientcards{grid-template-columns:1fr 1fr}#kosTradingViewChart{height:340px!important}.clientpanel{padding:12px}.clientpanel .panel{padding:12px}.clientpanel .adminforms{grid-template-columns:1fr}.clientpanel .admintable{min-width:650px}.clientpanel .panelhead{align-items:flex-start;gap:8px;flex-wrap:wrap}}@media(max-width:390px){#kosTradingViewChart{height:300px!important}.clientcards{gap:8px}.clientcard{padding:12px}.clientcard strong{font-size:19px}}
   </style>
 </head>
 <body>
@@ -56,7 +56,15 @@
         <div class="clientcard"><span>Statusi i llogarisë</span><strong id="clientAccountStatus">—</strong></div>
       </div>
       <div class="panel" style="margin:16px 0;background:#0d121a">
-        <div class="panelhead"><h3>HAP POZITË DEMO · XAUUSD</h3><span class="tag">MANUAL PRICE</span></div>
+        <div class="panelhead"><h3>XAUUSD · GRAFIKU I TREGUT</h3><span class="tag">CANDLES · TRADINGVIEW</span></div>
+        <div id="kosTradingViewChart" style="height:430px;width:100%;border-radius:10px;overflow:hidden;background:#0b1018">
+          <div class="tradingview-widget-container" style="height:100%;width:100%">
+            <div class="tradingview-widget-container__widget" style="height:calc(100% - 24px);width:100%"></div>
+            <div class="tradingview-widget-copyright" style="font-size:10px;text-align:center;padding:3px"><a href="https://www.tradingview.com/symbols/XAUUSD/" target="_blank" rel="noopener">XAUUSD chart</a> · TradingView</div>
+          </div>
+        </div>
+        <div class="adminnotice" style="margin:10px 0 14px">Candles dhe kuotat shfaqen nga TradingView. Për hapjen/mbylljen automatike demo me çmimin aktual duhet të lidhet edhe API i çmimeve.</div>
+        <div class="panelhead"><h3>HAP POZITË DEMO · XAUUSD</h3><span class="tag">DERI NË LIDHJEN E API</span></div>
         <div class="adminforms" style="margin:0">
           <form class="adminform" id="demoTradeForm">
             <label for="demoSide">Drejtimi</label><select id="demoSide"><option value="buy">BUY</option><option value="sell">SELL</option></select>
@@ -341,6 +349,21 @@
       const { data } = await sb.auth.getUser();
       if (data?.user) await loadClientDashboard(data.user.id);
     });
+    // TradingView market chart: real market candles are embedded independently from demo execution.
+    const tvScript = document.createElement("script");
+    tvScript.type = "text/javascript";
+    tvScript.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+    tvScript.async = true;
+    tvScript.innerHTML = JSON.stringify({
+      autosize: true, symbol: "OANDA:XAUUSD", interval: "1", timezone: "Europe/Belgrade",
+      theme: "dark", style: "1", locale: "en", backgroundColor: "#0b1018",
+      gridColor: "rgba(255,255,255,0.06)", hide_top_toolbar: false,
+      hide_legend: false, allow_symbol_change: false, save_image: false,
+      calendar: false, details: false, hotlist: false, withdateranges: true,
+      hide_side_toolbar: true, support_host: "https://www.tradingview.com"
+    });
+    document.querySelector("#kosTradingViewChart .tradingview-widget-container").appendChild(tvScript);
+
     document.getElementById("demoTradeForm").addEventListener("submit", async (event) => {
       event.preventDefault();
       if (!clientCurrentAccountId) {
