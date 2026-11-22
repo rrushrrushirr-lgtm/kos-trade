@@ -76,6 +76,16 @@
         <div class="adminstat"><span>Llogari tregtimi</span><strong id="adminAccountCount">—</strong></div>
         <div class="adminstat"><span>Hyrje në regjistër</span><strong id="adminLedgerCount">—</strong></div>
       </div>
+      <form class="adminform" id="adminCreateClientForm" style="margin-top:14px">
+        <h4>REGJISTRO KLIENT TË RI</h4>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
+          <div><label for="newClientName">Emri dhe mbiemri</label><input id="newClientName" required placeholder="Emri i klientit"></div>
+          <div><label for="newClientEmail">Email</label><input id="newClientEmail" type="email" required placeholder="klienti@example.com"></div>
+          <div><label for="newClientPassword">Fjalëkalimi (min. 6)</label><input id="newClientPassword" type="password" minlength="6" required placeholder="Fjalëkalimi"></div>
+        </div>
+        <button type="submit">KRIJO KLIENTIN</button>
+        <div class="adminmessage" id="adminCreateClientMessage"></div>
+      </form>
       <div class="adminforms">
         <form class="adminform" id="createAccountForm">
           <h4>KRIJO LLOGARI PËR KLIENT</h4>
@@ -242,6 +252,46 @@
         : '<option value="">Nuk ka llogari</option>';
       adminLoadMessage.textContent = "Të dhënat u ngarkuan.";
     }
+
+    // Isolated auth client creates a new auth user without replacing the administrator session.
+    const registrationClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: { storageKey: "kos-trade-client-registration", persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+    });
+    document.getElementById("adminCreateClientForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const message = document.getElementById("adminCreateClientMessage");
+      const button = event.currentTarget.querySelector('button[type="submit"]');
+      const name = document.getElementById("newClientName").value.trim();
+      const email = document.getElementById("newClientEmail").value.trim();
+      const password = document.getElementById("newClientPassword").value;
+      if (!name || !email || password.length < 6) {
+        message.textContent = "Plotëso të gjitha fushat. Fjalëkalimi duhet t'i ketë së paku 6 karaktere.";
+        return;
+      }
+      button.disabled = true;
+      button.textContent = "DUKE KRIJUAR…";
+      message.textContent = "";
+      try {
+        const { data, error } = await registrationClient.auth.signUp({
+          email, password, options: { data: { display_name: name } }
+        });
+        if (error) throw error;
+        if (!data.user) throw new Error("Supabase nuk ktheu përdorues.");
+        message.textContent = data.session
+          ? "Klienti u krijua. Profili po regjistrohet në sistem."
+          : "Klienti u krijua. Nëse kërkohet, duhet ta konfirmojë emailin para kyçjes.";
+        document.getElementById("newClientName").value = "";
+        document.getElementById("newClientEmail").value = "";
+        document.getElementById("newClientPassword").value = "";
+        await new Promise(resolve => setTimeout(resolve, 700));
+        await loadAdminPanel();
+      } catch (err) {
+        message.textContent = "Regjistrimi dështoi: " + (err.message || "Gabim i panjohur");
+      } finally {
+        button.disabled = false;
+        button.textContent = "KRIJO KLIENTIN";
+      }
+    });
 
     document.getElementById("adminRefresh").addEventListener("click", loadAdminPanel);
     document.getElementById("createAccountForm").addEventListener("submit", async (event) => {
