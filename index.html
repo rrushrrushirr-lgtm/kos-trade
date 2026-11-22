@@ -85,7 +85,7 @@
       <div class="panelhead"><h3>HISTORIKU FINANCIAR</h3><span class="tag">LLOGARIA IME</span></div>
       <div class="admintablewrap"><table class="admintable"><thead><tr><th>Data</th><th>Lloji</th><th>Shuma (USD)</th><th>Përshkrimi</th></tr></thead><tbody id="clientLedgerBody"><tr><td colspan="4">Duke ngarkuar…</td></tr></tbody></table></div>
       <div class="clientmessage" id="clientLoadMessage"></div>
-      <div class="clienttradeinfo"><b style="color:var(--gold2)">XAUUSD Trading Terminal</b><br>Grafiku live, BUY/SELL, pozitat dhe llogaritja e fitimit/humbjes do të aktivizohen në fazat e motorit të tregtimit dhe integrimit të tregut. Aktualisht nuk pranohen urdhra tregtimi dhe bilanci është regjistër demonstrues i brendshëm.</div>
+      <div class="clienttradeinfo"><b style="color:var(--gold2)">KOS TRADE · SIMULATED ENGINE</b><br>Ky terminal përdor çmime dhe candles të gjeneruara nga motori simulues i KOS TRADE. BUY/SELL, SL/TP, P/L dhe mbyllja e pozicioneve punojnë në modalitet testues. Nuk është treg real dhe nuk kryen ekzekutim në bursë.</div>
     </section>
     <section class="grid">
       <div class="card"><div class="label">Instrument <span>01</span></div><div class="value">XAUUSD</div></div>
@@ -323,7 +323,9 @@
         const { data: positions, error: positionsError } = await sb.from("positions").select("id, symbol, side, volume, entry_price, stop_loss, take_profit, opened_at").eq("account_id", account.id).eq("status", "open").order("opened_at", { ascending: false });
         if (positionsError) throw positionsError;
         await refreshDemoMarket();
-        const openPositions = positions || [];
+        const { data: latestPositions, error: latestPositionsError } = await sb.from("positions").select("id, symbol, side, volume, entry_price, stop_loss, take_profit, opened_at").eq("account_id", account.id).eq("status", "open").order("opened_at", { ascending: false });
+        if (latestPositionsError) throw latestPositionsError;
+        const openPositions = latestPositions || [];
         document.getElementById("clientPositionsBody").innerHTML = openPositions.length
           ? openPositions.map(p => {
               const floating = (p.side === "buy" ? demoCurrentPrice - Number(p.entry_price) : Number(p.entry_price) - demoCurrentPrice) * Number(p.volume) * 100;
