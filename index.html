@@ -86,6 +86,12 @@
     // Publishable/anon key is intended for browser use. Never put a service_role/secret key here.
     const SUPABASE_URL = "https://owfrvsbkkzjwnoawjczc.supabase.co";
     const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_HldQ1eMLlqOtGh3OuA_U8Q_5Y3LxFkk";
+    if (!window.supabase || typeof window.supabase.createClient !== "function") {
+      document.getElementById("loginMessage").textContent =
+        "Nuk u ngarkua libraria e lidhjes. Rifresko faqen ose provo pas pak.";
+      document.getElementById("connectionStatus").textContent = "● LIBRARY ERROR";
+      throw new Error("Supabase JS library failed to load");
+    }
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
     const gate = document.getElementById("loginGate");
     const loginForm = document.getElementById("loginForm");
@@ -137,6 +143,7 @@
       button.textContent = "KYÇU";
       if (error) {
         loginMessage.textContent = "Kyçja dështoi: " + error.message;
+        statusEl.textContent = "● LOGIN FAILED";
         return;
       }
       await showSession(data.session);
@@ -154,7 +161,8 @@
       }
       showSession(data?.session || null);
     });
-    sb.auth.onAuthStateChange((_event, session) => showSession(session));
+    // Avoid awaiting database requests inside onAuthStateChange callbacks.
+    // The session is restored on page load and updated directly after login/logout.
   </script>
 
 </body>
