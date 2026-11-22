@@ -108,24 +108,34 @@
         avatarEl.textContent = "KT";
         return;
       }
+      // Show the signed-in state immediately; profile lookup must not block login.
       gate.hidden = true;
       logoutBtn.hidden = false;
       statusEl.textContent = "● CONNECTED";
       const email = session.user.email || "";
       avatarEl.textContent = email.slice(0, 2).toUpperCase() || "KT";
-      const { data: profile, error } = await sb.from("profiles")
-        .select("display_name, role").eq("id", session.user.id).maybeSingle();
-      if (error) {
-        statusEl.textContent = "● PROFILE CHECK";
-        console.error("Profile read:", error.message);
-        return;
-      }
-      if (profile?.role === "admin") {
+      document.querySelector(".welcome p").textContent =
+        "U kyçët me sukses: " + email + " · Duke kontrolluar rolin…";
+      try {
+        const profileRequest = sb.from("profiles")
+          .select("display_name, role").eq("id", session.user.id).maybeSingle();
+        const timeout = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Kontrolli i profilit mori shumë kohë")), 8000)
+        );
+        const { data: profile, error } = await Promise.race([profileRequest, timeout]);
+        if (error) throw error;
+        if (profile?.role === "admin") {
+          document.querySelector(".welcome p").textContent =
+            "Administrator · " + (profile.display_name || email) + " · Qasja e administratorit është aktive.";
+        } else {
+          document.querySelector(".welcome p").textContent =
+            "Llogaria: " + (profile?.display_name || email) + " · Qasja e klientit.";
+        }
+      } catch (profileError) {
+        console.error("Profile lookup:", profileError);
         document.querySelector(".welcome p").textContent =
-          "Administrator · " + (profile.display_name || email) + " · Qasja e administratorit është aktive.";
-      } else {
-        document.querySelector(".welcome p").textContent =
-          "Llogaria: " + (profile?.display_name || email) + " · Qasja e klientit.";
+          "U kyçët me sukses: " + email + ". Kontrolli i profilit dështoi; hyrja mbetet aktive.";
+        statusEl.textContent = "● CONNECTED · PROFILE CHECK";
       }
     }
 
@@ -135,18 +145,27 @@
       button.disabled = true;
       button.textContent = "DUKE U KYÇUR…";
       loginMessage.textContent = "";
-      const { data, error } = await sb.auth.signInWithPassword({
-        email: document.getElementById("loginEmail").value.trim(),
-        password: document.getElementById("loginPassword").value
-      });
-      button.disabled = false;
-      button.textContent = "KYÇU";
-      if (error) {
-        loginMessage.textContent = "Kyçja dështoi: " + error.message;
+      statusEl.textContent = "● CONNECTING";
+      try {
+        const signInRequest = sb.auth.signInWithPassword({
+          email: document.getElementById("loginEmail").value.trim(),
+          password: document.getElementById("loginPassword").value
+        });
+        const timeout = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Serveri nuk u përgjigj brenda 15 sekondave. Kontrollo internetin dhe provo përsëri.")), 15000)
+        );
+        const { data, error } = await Promise.race([signInRequest, timeout]);
+        if (error) throw error;
+        if (!data?.session) throw new Error("Kyçja nuk ktheu sesion. Provo përsëri.");
+        await showSession(data.session);
+      } catch (loginError) {
+        console.error("Sign in:", loginError);
+        loginMessage.textContent = "Kyçja dështoi: " + (loginError.message || "Gabim i panjohur");
         statusEl.textContent = "● LOGIN FAILED";
-        return;
+      } finally {
+        button.disabled = false;
+        button.textContent = "KYÇU";
       }
-      await showSession(data.session);
     });
 
     logoutBtn.addEventListener("click", async () => {
