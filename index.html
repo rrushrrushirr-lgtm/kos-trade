@@ -55,6 +55,25 @@
         <div class="clientcard"><span>Numri i llogarisë</span><strong id="clientAccount">—</strong></div>
         <div class="clientcard"><span>Statusi i llogarisë</span><strong id="clientAccountStatus">—</strong></div>
       </div>
+      <div class="panel" style="margin:16px 0;background:#0d121a">
+        <div class="panelhead"><h3>HAP POZITË DEMO · XAUUSD</h3><span class="tag">MANUAL PRICE</span></div>
+        <div class="adminforms" style="margin:0">
+          <form class="adminform" id="demoTradeForm">
+            <label for="demoSide">Drejtimi</label><select id="demoSide"><option value="buy">BUY</option><option value="sell">SELL</option></select>
+            <label for="demoVolume">Vëllimi (0.01–10.00 lot)</label><input id="demoVolume" type="number" min="0.01" max="10" step="0.01" value="0.01" required>
+            <label for="demoEntryPrice">Çmimi hyrës XAUUSD</label><input id="demoEntryPrice" type="number" min="0.01" step="0.01" placeholder="p.sh. 2650.50" required>
+            <label for="demoStopLoss">Stop Loss (opsional)</label><input id="demoStopLoss" type="number" min="0.01" step="0.01" placeholder="Lëre bosh nëse s'do">
+            <label for="demoTakeProfit">Take Profit (opsional)</label><input id="demoTakeProfit" type="number" min="0.01" step="0.01" placeholder="Lëre bosh nëse s'do">
+            <button type="submit" id="demoOpenButton">HAP BUY / SELL DEMO</button>
+            <div class="adminmessage" id="demoTradeMessage"></div>
+          </form>
+          <div class="adminform">
+            <h4>SI FUNKSIONON DEMO</h4>
+            <div class="adminnotice">Vendos vetë çmimin hyrës. Pozita ruhet në llogari dhe shfaqet te lista më poshtë. Nuk ka çmime live, ekzekutim brokeri apo para reale.</div>
+            <div class="adminnotice">Llogaritja demo e P/L supozon kontratë 100 oz për 1.00 lot. Mbyllja bëhet me çmim manual.</div>
+          </div>
+        </div>
+      </div>
       <div class="panelhead" style="margin-top:20px"><h3>POZITAT E HAPURA</h3><button class="adminrefresh" id="clientCloseAll" type="button" disabled>MBYLL TË GJITHA</button></div>
       <div class="admintablewrap"><table class="admintable"><thead><tr><th>Instrumenti</th><th>Tipi</th><th>Vëllimi</th><th>Hyrja</th><th>SL</th><th>TP</th><th>Hapur</th></tr></thead><tbody id="clientPositionsBody"><tr><td colspan="7">Duke ngarkuar…</td></tr></tbody></table></div>
       <div class="clientmessage" id="clientPositionMessage">Mbyllja demo përdor çmimin XAUUSD që e vendos ti manualisht.</div>
@@ -321,6 +340,53 @@
     document.getElementById("clientRefresh").addEventListener("click", async () => {
       const { data } = await sb.auth.getUser();
       if (data?.user) await loadClientDashboard(data.user.id);
+    });
+    document.getElementById("demoTradeForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!clientCurrentAccountId) {
+        document.getElementById("demoTradeMessage").textContent = "Nuk u gjet llogaria aktive.";
+        return;
+      }
+      const side = document.getElementById("demoSide").value;
+      const volume = Number(document.getElementById("demoVolume").value);
+      const entryPrice = Number(document.getElementById("demoEntryPrice").value);
+      const slText = document.getElementById("demoStopLoss").value.trim();
+      const tpText = document.getElementById("demoTakeProfit").value.trim();
+      const stopLoss = slText ? Number(slText) : null;
+      const takeProfit = tpText ? Number(tpText) : null;
+      const button = document.getElementById("demoOpenButton");
+      const message = document.getElementById("demoTradeMessage");
+      if (!Number.isFinite(volume) || !Number.isFinite(entryPrice) ||
+          (stopLoss !== null && !Number.isFinite(stopLoss)) ||
+          (takeProfit !== null && !Number.isFinite(takeProfit))) {
+        message.textContent = "Kontrollo çmimin, vëllimin, SL dhe TP.";
+        return;
+      }
+      button.disabled = true;
+      button.textContent = "DUKE HAPUR…";
+      message.textContent = "Duke krijuar pozitën demo…";
+      try {
+        const { data, error } = await sb.rpc("client_open_demo_position", {
+          p_account_id: clientCurrentAccountId,
+          p_side: side,
+          p_volume: volume,
+          p_entry_price: entryPrice,
+          p_stop_loss: stopLoss,
+          p_take_profit: takeProfit
+        });
+        if (error) throw error;
+        message.textContent = "Pozita " + side.toUpperCase() + " demo u hap me sukses.";
+        document.getElementById("demoEntryPrice").value = "";
+        document.getElementById("demoStopLoss").value = "";
+        document.getElementById("demoTakeProfit").value = "";
+        const { data: userData } = await sb.auth.getUser();
+        if (userData?.user) await loadClientDashboard(userData.user.id);
+      } catch (err) {
+        message.textContent = "Hapja dështoi: " + (err.message || "Gabim i panjohur");
+      } finally {
+        button.disabled = false;
+        button.textContent = "HAP BUY / SELL DEMO";
+      }
     });
     document.getElementById("clientCloseAll").addEventListener("click", async () => {
       if (!clientCurrentAccountId) return;
