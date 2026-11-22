@@ -329,7 +329,7 @@
       const { data } = await sb.auth.getUser();
       if (data?.user) await loadClientDashboard(data.user.id);
     });
-    // KOS TRADE internal simulated market chart (not a live-market feed).
+    // KOS TRADE live XAUUSD spot chart.
     let demoChart = null;
     let demoCandleSeries = null;
     let demoCurrentPrice = null;
