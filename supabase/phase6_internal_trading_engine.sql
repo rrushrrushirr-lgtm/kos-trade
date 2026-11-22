@@ -9,9 +9,9 @@ stable
 set search_path = ''
 as $$
   select round((2650
-    + 18 * sin(extract(epoch from p_time) / 73.0)
-    + 8 * sin(extract(epoch from p_time) / 19.0)
-    + 3 * sin(extract(epoch from p_time) / 7.0))::numeric, 2);
+    + 18 * sin(extract(epoch from p_time)::double precision / 73.0)
+    + 8 * sin(extract(epoch from p_time)::double precision / 19.0)
+    + 3 * sin(extract(epoch from p_time)::double precision / 7.0))::numeric, 2);
 $$;
 
 create or replace function public.client_demo_market_snapshot(p_account_id uuid)
