@@ -29,6 +29,8 @@
 
     .adminpanel{margin-top:16px}.adminhead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.adminstats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:15px 0}.adminstat{background:#0d121a;border:1px solid var(--line);border-radius:10px;padding:13px}.adminstat span{display:block;color:var(--muted);font-size:11px}.adminstat strong{display:block;font:700 22px Manrope;margin-top:5px;color:var(--gold2)}.adminforms{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}.adminform{background:#0d121a;border:1px solid var(--line);border-radius:11px;padding:14px}.adminform h4{margin:0 0 10px;font:700 13px Manrope}.adminform label{display:block;color:var(--muted);font-size:11px;margin:9px 0 5px}.adminform input,.adminform select{width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:#090d14;color:var(--text)}.adminform button,.adminrefresh{margin-top:10px;padding:10px 13px;border:1px solid #8f713a;border-radius:8px;background:#211b10;color:var(--gold2);font-weight:700;cursor:pointer}.adminnotice{font-size:11px;color:var(--muted);margin:9px 0}.admintablewrap{overflow:auto;margin-top:14px}.admintable{width:100%;border-collapse:collapse;font-size:12px;min-width:560px}.admintable th,.admintable td{text-align:left;padding:11px;border-bottom:1px solid var(--line)}.admintable th{color:var(--muted);font-weight:500}.adminmessage{min-height:18px;color:var(--gold2);font-size:12px;margin-top:8px}@media(max-width:650px){.adminforms{grid-template-columns:1fr}.adminstats{grid-template-columns:1fr 1fr}}
     @media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.main{grid-template-columns:1fr}}@media(max-width:520px){.shell{padding:18px 14px 35px}.status{display:none}.grid{gap:9px}.card{padding:14px;min-height:100px}.value{font-size:20px}.chartplaceholder{height:210px}.welcome{margin-top:25px}}
+
+    .clientpanel{margin-top:16px}.clientcards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}.clientcard{background:#0d121a;border:1px solid var(--line);border-radius:11px;padding:16px}.clientcard span{display:block;color:var(--muted);font-size:11px}.clientcard strong{display:block;font:700 23px Manrope;color:var(--gold2);margin-top:7px}.clientmessage{font-size:12px;color:var(--gold2);margin-top:10px;min-height:18px}.clienttradeinfo{padding:14px;border:1px dashed #5c4828;border-radius:10px;color:var(--muted);font-size:12px;line-height:1.6;margin-top:14px}@media(max-width:650px){.clientcards{grid-template-columns:1fr 1fr}}
   </style>
 </head>
 <body>
@@ -46,6 +48,18 @@
 
     <div class="notice"><span>◆</span><div><b>Version zhvillimi — pa tregtim aktiv.</b> Kjo faqe është vetëm skeleti vizual. Nuk ka çmime live, bilance klientësh, depozita apo ekzekutim urdhrash të lidhur. Mos e përdor për të pranuar para ose për të premtuar tregtim real.</div></div>
 
+    <section class="panel clientpanel" id="clientPanel" hidden>
+      <div class="panelhead"><div><div class="eyebrow">CLIENT AREA</div><h3 style="margin-top:5px">DASHBOARDI IM</h3></div><button class="adminrefresh" id="clientRefresh" type="button">RIFRESKO</button></div>
+      <div class="clientcards">
+        <div class="clientcard"><span>Bilanci im (USD)</span><strong id="clientBalance">$0.00</strong></div>
+        <div class="clientcard"><span>Numri i llogarisë</span><strong id="clientAccount">—</strong></div>
+        <div class="clientcard"><span>Statusi i llogarisë</span><strong id="clientAccountStatus">—</strong></div>
+      </div>
+      <div class="panelhead"><h3>HISTORIKU FINANCIAR</h3><span class="tag">LLOGARIA IME</span></div>
+      <div class="admintablewrap"><table class="admintable"><thead><tr><th>Data</th><th>Lloji</th><th>Shuma (USD)</th><th>Përshkrimi</th></tr></thead><tbody id="clientLedgerBody"><tr><td colspan="4">Duke ngarkuar…</td></tr></tbody></table></div>
+      <div class="clientmessage" id="clientLoadMessage"></div>
+      <div class="clienttradeinfo"><b style="color:var(--gold2)">XAUUSD Trading Terminal</b><br>Grafiku live, BUY/SELL, pozitat dhe llogaritja e fitimit/humbjes do të aktivizohen në fazat e motorit të tregtimit dhe integrimit të tregut. Aktualisht nuk pranohen urdhra tregtimi dhe bilanci është regjistër demonstrues i brendshëm.</div>
+    </section>
     <section class="grid">
       <div class="card"><div class="label">Instrument <span>01</span></div><div class="value">XAUUSD</div></div>
       <div class="card"><div class="label">Platform status <span>02</span></div><div class="value small">In development</div></div>
@@ -186,7 +200,12 @@
           await loadAdminPanel();
         } else {
           document.querySelector(".welcome p").textContent =
-            "Llogaria: " + (profile?.display_name || email) + " · Qasja e klientit.";
+            "Llogaria: " + (profile?.display_name || email) + " · Qasja e klientit."; 
+          document.querySelector(".notice").hidden = true;
+          document.querySelector(".grid").hidden = true;
+          document.querySelector(".main").hidden = true;
+          document.getElementById("clientPanel").hidden = false;
+          await loadClientDashboard(session.user.id);
         }
       } catch (profileError) {
         console.error("Profile lookup:", profileError);
@@ -253,6 +272,42 @@
       adminLoadMessage.textContent = "Të dhënat u ngarkuan.";
     }
 
+    async function loadClientDashboard(userId) {
+      const message = document.getElementById("clientLoadMessage");
+      const ledgerBody = document.getElementById("clientLedgerBody");
+      message.textContent = "Duke i ngarkuar të dhënat…";
+      ledgerBody.innerHTML = '<tr><td colspan="4">Duke ngarkuar…</td></tr>';
+      try {
+        const { data: accounts, error: accountError } = await sb.from("trading_accounts").select("id, account_number, currency, status").eq("user_id", userId).order("created_at", { ascending: false });
+        if (accountError) throw accountError;
+        if (!accounts || !accounts.length) {
+          document.getElementById("clientBalance").textContent = "$0.00";
+          document.getElementById("clientAccount").textContent = "Pa llogari";
+          document.getElementById("clientAccountStatus").textContent = "Në pritje";
+          ledgerBody.innerHTML = '<tr><td colspan="4">Ende nuk është krijuar llogari tregtimi për profilin tënd. Kontakto administratorin.</td></tr>';
+          message.textContent = "Profili është aktiv, por nuk ka llogari tregtimi.";
+          return;
+        }
+        const account = accounts[0];
+        document.getElementById("clientAccount").textContent = "#" + account.account_number;
+        document.getElementById("clientAccountStatus").textContent = account.status === "active" ? "Aktive" : account.status === "pending" ? "Në pritje" : account.status;
+        const { data: entries, error: ledgerError } = await sb.from("ledger_entries").select("id, entry_type, amount, description, created_at").eq("account_id", account.id).order("created_at", { ascending: false });
+        if (ledgerError) throw ledgerError;
+        const rows = entries || [];
+        const balance = rows.reduce((total, entry) => total + Number(entry.amount || 0), 0);
+        document.getElementById("clientBalance").textContent = new Intl.NumberFormat("en-US", { style: "currency", currency: account.currency || "USD" }).format(balance);
+        ledgerBody.innerHTML = rows.length ? rows.map(entry => '<tr><td>' + escapeHtml(new Date(entry.created_at).toLocaleString("sq-AL")) + '</td><td>' + escapeHtml(entry.entry_type) + '</td><td>' + escapeHtml(Number(entry.amount).toFixed(2)) + '</td><td>' + escapeHtml(entry.description || "") + '</td></tr>').join("") : '<tr><td colspan="4">Nuk ka ende hyrje financiare.</td></tr>';
+        message.textContent = "Të dhënat u ngarkuan.";
+      } catch (err) {
+        console.error("Client dashboard:", err);
+        message.textContent = "Gabim gjatë ngarkimit: " + (err.message || "Gabim i panjohur");
+        ledgerBody.innerHTML = '<tr><td colspan="4">Të dhënat nuk u ngarkuan.</td></tr>';
+      }
+    }
+    document.getElementById("clientRefresh").addEventListener("click", async () => {
+      const { data } = await sb.auth.getUser();
+      if (data?.user) await loadClientDashboard(data.user.id);
+    });
     // Isolated auth client creates a new auth user without replacing the administrator session.
     const registrationClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       auth: { storageKey: "kos-trade-client-registration", persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
