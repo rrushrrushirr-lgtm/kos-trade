@@ -111,6 +111,20 @@
       <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="Fjalëkalimi">
       <button type="submit" id="loginSubmit">KYÇU</button>
       <div class="loginmsg" id="loginMessage"></div>
+      <button type="button" id="showRegister" style="margin-top:8px;background:transparent;border:1px solid #5c4828;color:#f0d18a">REGJISTRO KLIENT TË RI</button>
+      <div id="registerArea" hidden>
+        <div style="height:1px;background:#252d3a;margin:18px 0"></div>
+        <div class="eyebrow">KRIJO PROFIL KLIENTI</div>
+        <label for="registerName">Emri dhe mbiemri</label>
+        <input id="registerName" autocomplete="name" placeholder="Emri i klientit">
+        <label for="registerEmail">Email</label>
+        <input id="registerEmail" type="email" autocomplete="email" placeholder="klienti@example.com">
+        <label for="registerPassword">Fjalëkalimi (minimum 6 karaktere)</label>
+        <input id="registerPassword" type="password" autocomplete="new-password" minlength="6" placeholder="Fjalëkalimi">
+        <button type="button" id="registerSubmit">KRIJO PROFILIN</button>
+        <div class="loginmsg" id="registerMessage"></div>
+        <button type="button" id="hideRegister" style="margin-top:7px;background:transparent;border:1px solid #252d3a;color:#aeb7c5">KTHEHU TE KYÇJA</button>
+      </div>
     </form>
   </div>
   <script>
@@ -215,7 +229,13 @@
       const clientsWithoutAccount = adminClients.filter(p => !adminAccounts.some(a => a.user_id === p.id));
       clientSelect.innerHTML = clientsWithoutAccount.length
         ? '<option value="">Zgjedh klientin</option>' + clientsWithoutAccount.map(p => '<option value="' + escapeHtml(p.id) + '">' + escapeHtml(p.display_name || p.id.slice(0,8)) + '</option>').join("")
-        : '<option value="">Nuk ka klientë pa llogari</option>';
+        : '<option value="">Nuk ka klientë pa llogari — regjistro klientin më parë</option>';
+      if (!clientsWithoutAccount.length) {
+        document.getElementById("createAccountMessage").textContent =
+          adminClients.length ? "Të gjithë klientët ekzistues kanë llogari." : "Nuk ka ende klientë. Regjistro klientin nga butoni REGJISTRO KLIENT TË RI në faqen e kyçjes, pastaj kthehu këtu.";
+      } else {
+        document.getElementById("createAccountMessage").textContent = "";
+      }
       const accountSelect = document.getElementById("adjustAccount");
       accountSelect.innerHTML = adminAccounts.length
         ? '<option value="">Zgjedh llogarinë</option>' + adminAccounts.map(a => '<option value="' + escapeHtml(a.id) + '">#' + escapeHtml(a.account_number) + ' · ' + escapeHtml(clientsById[a.user_id]?.display_name || "Klient") + '</option>').join("")
@@ -253,6 +273,49 @@
       document.getElementById("adjustAmount").value = "";
       document.getElementById("adjustDescription").value = "";
       await loadAdminPanel();
+    });
+
+    const registerArea = document.getElementById("registerArea");
+    document.getElementById("showRegister").addEventListener("click", () => {
+      registerArea.hidden = false;
+      document.getElementById("showRegister").hidden = true;
+      loginMessage.textContent = "";
+    });
+    document.getElementById("hideRegister").addEventListener("click", () => {
+      registerArea.hidden = true;
+      document.getElementById("showRegister").hidden = false;
+      document.getElementById("registerMessage").textContent = "";
+    });
+    document.getElementById("registerSubmit").addEventListener("click", async () => {
+      const name = document.getElementById("registerName").value.trim();
+      const email = document.getElementById("registerEmail").value.trim();
+      const password = document.getElementById("registerPassword").value;
+      const message = document.getElementById("registerMessage");
+      if (!name || !email || password.length < 6) {
+        message.textContent = "Plotëso emrin, emailin dhe fjalëkalimin (minimum 6 karaktere).";
+        return;
+      }
+      const btn = document.getElementById("registerSubmit");
+      btn.disabled = true;
+      btn.textContent = "DUKE KRIJUAR…";
+      message.textContent = "";
+      try {
+        const { data, error } = await sb.auth.signUp({
+          email, password, options: { data: { display_name: name } }
+        });
+        if (error) throw error;
+        if (data.session) {
+          message.textContent = "Profili u krijua. Po hap llogarinë…";
+          await showSession(data.session);
+        } else {
+          message.textContent = "Profili u krijua. Klienti duhet ta konfirmojë emailin, pastaj mund të kyçet. Pas kyçjes do të shfaqet te lista e klientëve.";
+        }
+      } catch (err) {
+        message.textContent = "Regjistrimi dështoi: " + (err.message || "Gabim i panjohur");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "KRIJO PROFILIN";
+      }
     });
 
     loginForm.addEventListener("submit", async (event) => {
