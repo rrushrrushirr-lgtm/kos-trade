@@ -254,7 +254,8 @@
       document.getElementById("adjustDescription").value = "";
       await loadAdminPanel();
     });
-\n    loginForm.addEventListener("submit", async (event) => {
+
+    loginForm.addEventListener("submit", async (event) => {
       event.preventDefault();
       const button = document.getElementById("loginSubmit");
       button.disabled = true;
