@@ -30,7 +30,25 @@ public class MainActivity extends Activity {
     private final List<String> rows = new ArrayList<>();
     private ArrayAdapter<String> listAdapter;
     private TextView status, details;
-    private Button scanButton, inspectButton;
+    private Button scanButton, inspectButton, testButton;
+    private boolean testRunning = false;
+    private int testSeconds = 10;
+    private final Runnable testTicker = new Runnable() {
+        @Override public void run() {
+            if (!testRunning) return;
+            if (testSeconds > 0) {
+                testButton.setText("UNLOCK TEST · " + testSeconds + "s");
+                status.setText("SIMULATION ONLY — test window: " + testSeconds + " seconds. Scooter control commands are not sent.");
+                testSeconds--;
+                handler.postDelayed(this, 1000);
+            } else {
+                testRunning = false;
+                testButton.setText("UNLOCK TEST · 10s");
+                status.setText("LOCKED — simulation complete. No physical scooter state was changed.");
+                details.append("\n\n10-SECOND UI SIMULATION COMPLETE. No BLE write or unlock/lock command was transmitted.");
+            }
+        }
+    };
     private BluetoothDevice selected;
     private boolean scanning = false;
 
@@ -131,10 +149,10 @@ public class MainActivity extends Activity {
                 status.setText("Selected device. Inspection is read-only.");
             }
         });
-        inspectButton.setOnClickListener(v -> inspectSelected());
+        inspectButton.setOnClickListener(v -> inspectSelected());\n        testButton.setOnClickListener(v -> startTenSecondSimulation());
     }
 
-    private void requestNeededPermissions() {
+    private void startTenSecondSimulation() {\n        if (testRunning) {\n            testRunning = false;\n            handler.removeCallbacks(testTicker);\n            testButton.setText("UNLOCK TEST · 10s (SIMULATION)");\n            status.setText("Simulation cancelled. No scooter command was sent.");\n            return;\n        }\n        testRunning = true;\n        testSeconds = 10;\n        details.append("\\n\\nStarting 10-second interface simulation. This is not a real unlock test.");\n        handler.removeCallbacks(testTicker);\n        handler.post(testTicker);\n    }\n\n    private void requestNeededPermissions() {
         ArrayList<String> needed = new ArrayList<>();
         if (Build.VERSION.SDK_INT >= 31) {
             if (checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED)
@@ -243,6 +261,6 @@ public class MainActivity extends Activity {
             try { scanner.stopScan(scanCallback); } catch (Exception ignored) {}
         }
         if (gatt != null) { try { gatt.disconnect(); gatt.close(); } catch (Exception ignored) {} }
-        handler.removeCallbacksAndMessages(null);
+        testRunning = false;\n        handler.removeCallbacksAndMessages(null);
     }
 }
